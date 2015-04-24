@@ -1,0 +1,21 @@
+{
+  "name": "client",
+  "version": "1.0.0",
+  "moduleType": [
+    "node"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "resolutions": {
+    "react": "~0.12.2"
+  },
+  "dependencies": {
+    "purescript-thermite": "~0.7.0",
+    "react": "~0.13.2",
+    "bootstrap": "~3.3.4"
+  }
+}
