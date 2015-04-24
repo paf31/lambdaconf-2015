@@ -1,0 +1,11 @@
+{
+  "name": "langdb-server",
+  "version": "0.1.0",
+  "author": "Phil Freeman",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.12.3",
+    "express": "^4.12.3",
+    "pulp": "^3.2.2"
+  }
+}

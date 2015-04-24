@@ -13,6 +13,7 @@
   "dependencies": {
     "purescript-integers": "~0.1.0",
     "purescript-maps": "~0.3.4",
-    "purescript-express": "~0.2.0"
+    "purescript-express": "~0.2.0",
+    "purescript-refs": "~0.1.3"
   }
 }
