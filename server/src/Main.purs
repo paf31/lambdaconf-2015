@@ -179,23 +179,26 @@ tagHandler db = do
 
 foreign import jsonBodyParser "var jsonBodyParser = require('body-parser').json()" :: forall middleware. middleware
 
+foreign import staticFiles "var staticFiles = require('express').static('../client')" :: forall middleware. middleware
+
 app :: RefVal DB -> App
 app db = do
   setProp "json spaces" 2
   
   useExternal jsonBodyParser
+  useExternal staticFiles
   
-  get "/" indexHandler
+  get "/api" indexHandler
   
-  get "/lang" (listHandler db)
-  get "/lang/:id" (getHandler db)
-  put "/lang/:id" (putHandler db)
+  get "/api/lang" (listHandler db)
+  get "/api/lang/:id" (getHandler db)
+  put "/api/lang/:id" (putHandler db)
 
-  post "/lang/:id/like" (rateHandler db (+ one))
-  post "/lang/:id/dislike" (rateHandler db (+ (fromNumber (-1))))
+  post "/api/lang/:id/like" (rateHandler db (+ one))
+  post "/api/lang/:id/dislike" (rateHandler db (+ (fromNumber (-1))))
   
-  get "/tag" (tagsHandler db)
-  get "/tag/:tag" (tagHandler db)
+  get "/api/tag" (tagsHandler db)
+  get "/api/tag/:tag" (tagHandler db)
 
 main = do
   db <- newRef initialDb
