@@ -5,6 +5,7 @@ import Debug.Trace
 import Data.Int
 import Data.Maybe
 import Data.Tuple
+import Data.Either
 import Data.Array (filter, map, nub, sort)
 import Data.Foldable (elem)
 
@@ -22,7 +23,8 @@ import Node.Express.Handler
 type Key = String
 
 newtype Lang = Lang
-  { name :: String
+  { key :: Key
+  , name :: String
   , description :: String
   , homepage :: String
   , rating :: Int
@@ -37,7 +39,8 @@ type DB = M.Map Key Lang
 
 purescript :: Lang
 purescript = Lang
-  { name: "PureScript"
+  { key: "purescript"
+  , name: "PureScript"
   , description: "A small strongly typed programming language that compiles to JavaScript"
   , homepage: "http://purescript.org/"
   , rating: fromNumber 463
@@ -46,7 +49,8 @@ purescript = Lang
   
 haskell :: Lang
 haskell = Lang
-  { name: "Haskell"
+  { key: "haskell"
+  , name: "Haskell"
   , description: "An advanced purely-functional programming language"
   , homepage: "http://haskell.org/"
   , rating: fromNumber 16586
@@ -55,7 +59,8 @@ haskell = Lang
 
 clojure :: Lang
 clojure = Lang
-  { name: "Clojure"
+  { key: "clojure"
+  , name: "Clojure"
   , description: "A dynamic programming language that targets the Java Virtual Machine"
   , homepage: "http://clojure.org/"
   , rating: fromNumber 14616
@@ -64,7 +69,8 @@ clojure = Lang
 
 befunge :: Lang
 befunge = Lang
-  { name: "Befunge"
+  { key: "befunge"
+  , name: "Befunge"
   , description: "A two-dimensional esoteric programming language"
   , homepage: "https://esolangs.org/wiki/Befunge"
   , rating: fromNumber 153
@@ -82,17 +88,17 @@ initialDb = M.fromList
 indexHandler :: Handler
 indexHandler = send 
   { name: "langdb server"
-  , lang: "http://localhost:9000/lang"
-  , tag: "http://localhost:9000/tag"
+  , lang: "http://localhost:9000/api/lang"
+  , tag: "http://localhost:9000/api/tag"
   }
  
 shortLang :: Tuple Key Lang -> { key :: Key, name :: String, uri :: String, like :: String, dislike :: String }
 shortLang (Tuple key (Lang o)) = 
   { key: key
   , name: o.name
-  , uri: "http://localhost:9000/lang/" <> key 
-  , like: "http://localhost:9000/lang/" <> key <> "/like"
-  , dislike: "http://localhost:9000/lang/" <> key <> "/dislike"
+  , uri: "http://localhost:9000/api/lang/" <> key 
+  , like: "http://localhost:9000/api/lang/" <> key <> "/like"
+  , dislike: "http://localhost:9000/api/lang/" <> key <> "/dislike"
   }
 
 listHandler :: RefVal DB -> Handler
@@ -100,7 +106,7 @@ listHandler db = do
   m <- liftEff $ readRef db
   send <<< map shortLang <<< M.toList $ m
   where
-  fromTuple (Tuple key (Lang o)) = { key: key, name: o.name, uri: "http://localhost:9000/lang/" <> key }
+  fromTuple (Tuple key (Lang o)) = { key: key, name: o.name, uri: "http://localhost:9000/api/lang/" <> key }
 
 getHandler :: RefVal DB -> Handler
 getHandler db = do
@@ -140,22 +146,27 @@ putHandler db = do
       description <- getBodyParam "description"
       homepage <- getBodyParam "homepage"
       tags <- getBodyParam "tags"
-      let lang = { name: _
+      let lang = { key: _id
+                 , name: _
                  , description: _
                  , homepage: _
                  , rating: zero :: Int
                  , tags: _
-                 } <$> name
-                   <*> description
-                   <*> homepage
-                   <*> tags
+                 } <$> (name         `orDie` "Name is required")
+                   <*> (description  `orDie` "Description is required")
+                   <*> (homepage     `orDie` "Homepage is required")
+                   <*> (tags         `orDie` "Tags are required")
       case lang of
-        Nothing -> do
+        Left err -> do
           setStatus 406
-          send "Parameters missing"
-        Just lang -> do
+          send err
+        Right lang -> do
           liftEff $ modifyRef db $ M.insert _id $ Lang lang
           send "ok"
+  where
+  orDie :: forall a. Maybe a -> String -> Either String a
+  orDie Nothing s = Left s
+  orDie (Just a) _ = Right a
         
 tagsHandler :: RefVal DB -> Handler
 tagsHandler db = do
@@ -164,7 +175,7 @@ tagsHandler db = do
     lang <- M.values m
     (runLang lang).tags
   where
-  makeEntry tag = { tag: tag, uri: "http://localhost:9000/tag/" <> tag }
+  makeEntry tag = { tag: tag, uri: "http://localhost:9000/api/tag/" <> tag }
   
 tagHandler :: RefVal DB -> Handler
 tagHandler db = do
