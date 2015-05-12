@@ -57,23 +57,19 @@ render ctx st _ _ =
   renderPage Loading = [ T.text "Loading..." ]
   renderPage (Error err) = [ T.text err ]
   renderPage (ListLangs langs tags) = 
-    [ H.h2' [ T.text "Languages" ]
-    , renderSummaries langs 
-    , H.p' [ H.small' [ H.a (A.href "#" <> T.onClick ctx (const (LoadEditLang emptyLang))) [ T.text "Add Language" ] ] ]
-    , H.h2' [ T.text "Tags" ]
+    [ H.h2' [ T.text "Tags" ]
     , renderTags (map (_.tag <<< runTagSummary) tags)
+    , H.h2' [ T.text "Languages" ]
+    , renderSummaries langs 
+    , editLangBtn "Add Language" emptyLang
     ]
-  renderPage (ViewLang (Lang lang)) = 
-    [ H.h2' [ T.text lang.name ]
-    , H.p (A.className "lead") [ T.text lang.description ]
-    , H.p' [ H.a (A.href lang.homepage) [ T.text lang.homepage ] ]
-    , H.p' [ H.button (A.className "btn btn-primary")
-                      [ H.span (A.className "badge") [ T.text (show (toNumber (lang.rating))) ]
-                      , T.text " Likes"
-                      ] 
-           ]
-    , H.p' [ H.small' [ H.a (A.href "#" <> T.onClick ctx (const (LoadEditLang (Lang lang)))) [ T.text "Edit" ] ] ]
-    , renderTags lang.tags
+  renderPage (ViewLang lang@(Lang l)) = 
+    [ H.h2' [ T.text l.name ]
+    , renderTags l.tags
+    , H.p (A.className "lead") [ T.text l.description ]
+    , H.p' [ H.a (A.href l.homepage) [ T.text l.homepage ] ]
+    , ratingsButton lang
+    , editLangBtn "Add Language" lang
     ]
   renderPage (ViewTag tag langs) = 
     [ H.h2' [ T.text "Tag "
@@ -82,8 +78,8 @@ render ctx st _ _ =
     , renderSummaries langs
     ]
   renderPage (EditLang newLang) =
-    [ H.h2' [ T.text "Add Language" ]
-    , addLang newLang
+    [ H.h2' [ T.text "Edit Language" ]
+    , editLangForm newLang
     ]
 
   renderSummaries :: [LangSummary] -> T.Html _
@@ -100,9 +96,26 @@ render ctx st _ _ =
                         [ T.text tag ] 
                     , T.text " "
                     ]                   
+           
+  editLangBtn :: String -> Lang -> T.Html _
+  editLangBtn text lang = 
+    H.p' [ H.small' [ H.a (A.href "#" 
+                           <> T.onClick ctx (const (LoadEditLang lang))) 
+                          [ T.text text ] 
+                    ]
+         ]
                     
-  addLang :: Lang -> T.Html _
-  addLang (Lang lang) = 
+  ratingsButton :: Lang -> T.Html _
+  ratingsButton lang = 
+    let likes = toNumber ((runLang lang).rating) in 
+    H.p' [ H.button (A.className "btn btn-primary")
+                    [ H.span (A.className "badge") [ T.text (show likes) ]
+                    , T.text " Likes"
+                    ] 
+         ]
+                    
+  editLangForm :: Lang -> T.Html _
+  editLangForm (Lang lang) = 
     H.form (A.className "form-horizontal")
       [ H.div (A.className "form-group")
         [ H.label (A.className "col-sm-2 control-label")
