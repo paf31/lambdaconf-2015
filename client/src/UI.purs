@@ -51,6 +51,14 @@ data State
   | Loading
   | Error String
 
+-- | The action type defines the various asynchronous actions which we can
+-- | attach to the buttons, links and inputs in our UI.
+-- | 
+-- | Many of the actions will load the data required to display a new page,
+-- | and then display that page.
+-- |
+-- | The `UpdateLang` action applies a function to synchronize the state value
+-- | with the state of the form.
 data Action
   = LoadList
   | LoadLang Key
@@ -60,13 +68,19 @@ data Action
   | UpdateForm (Lang -> Lang)
   | SaveLang
   
+-- | The initial state is the `Loading` state. We will use a hook to change to the
+-- | home page after our component is mounted.
 initialState :: State
 initialState = Loading
 
+-- | The rendering function, which takes the page state and produces a HTML document.
+-- |
+-- | This function is broken into several helper functions to aid readability.
 render :: T.Render _ State _ Action
 render ctx st _ _ =
   H.div (A.className "container") (header : renderPage st)
   where
+  -- | Render the navbar
   header :: T.Html _
   header = H.div (A.className "navbar navbar-default")
              [ H.div (A.className "navbar-header") 
@@ -74,6 +88,8 @@ render ctx st _ _ =
                  [ T.text "Programming Languages Database" ] ]
              ]
       
+  -- | Render the subpage, based on the data constructor used to construct the page
+  -- | state.
   renderPage :: State -> [T.Html _]
   renderPage Loading = [ T.text "Loading..." ]
   renderPage (Error err) = [ T.text err ]
@@ -101,6 +117,7 @@ render ctx st _ _ =
     , editLangForm newLang
     ]
 
+  -- | Render a list of language summaries
   renderSummaries :: [LangSummary] -> T.Html _
   renderSummaries = H.ul' <<< map (renderSummary <<< runLangSummary)
     where
@@ -108,6 +125,7 @@ render ctx st _ _ =
                                     [ T.text summary.name ] 
                                   ]
 
+  -- | Render a list of tags
   renderTags :: [Tag] -> T.Html _
   renderTags = H.p' <<< concatMap renderTag
     where
@@ -115,7 +133,8 @@ render ctx st _ _ =
                         [ T.text tag ] 
                     , T.text " "
                     ]                   
-           
+          
+  -- | Render a button which links to the 'Edit Language' subpage 
   editLangBtn :: String -> Lang -> T.Html _
   editLangBtn text lang = 
     H.p' [ H.small' [ H.a (A.href "#" 
@@ -123,7 +142,8 @@ render ctx st _ _ =
                           [ T.text text ] 
                     ]
          ]
-                    
+       
+  -- | Render a ratings button for a language             
   ratingsButton :: Lang -> T.Html _
   ratingsButton lang = 
     let likes = toNumber ((runLang lang).rating) in 
@@ -132,7 +152,8 @@ render ctx st _ _ =
                     , T.text " Likes"
                     ] 
          ]
-                    
+         
+  -- | Render the 'Edit Language' subpage           
   editLangForm :: Lang -> T.Html _
   editLangForm (Lang lang) = 
     H.form (A.className "form-horizontal")
@@ -194,6 +215,11 @@ render ctx st _ _ =
         ]
       ]
 
+-- | This function takes an action and produces a computation in Thermite's 
+-- | `Action` monad.
+-- | 
+-- | The `Action` monad can read the current state, update the state, and perform
+-- | asynchronous tasks, including AJAX requests.
 performAction :: T.PerformAction _ State _ Action
 performAction _ LoadList = do
   langs <- listLangs
@@ -220,10 +246,14 @@ performAction props SaveLang = do
     Left err -> T.setState (Error err)
     Right Ok -> performAction props LoadList
 
+-- | The specification for our component, along with a hook to perform an
+-- | action after it is mounted.
 spec :: T.Spec _ State _ Action
 spec = T.simpleSpec initialState performAction render
          # T.componentWillMount LoadList
 
+-- | The main function simply creates a class from our `spec`, and renders it
+-- | to the document body.
 main = do
   let component = T.createClass spec
   T.render component unit

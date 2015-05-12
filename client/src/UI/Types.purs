@@ -1,21 +1,31 @@
+-- | Types used by the Programming Languages Database client application.
+-- |
+-- | Instances of the `IsForeign` class are provided so that various types
+-- | can be safely read from AJAX responses.
+
 module UI.Types where
 
 import Data.Int
 import Data.Foreign
 import Data.Foreign.Class
     
+-- | A primary key for a language.
 type Key = String
 
+-- | A tag name.
 type Tag = String
   
+-- | An AJAX response with no content.
 data Ok = Ok
 
+-- | A tag summary record.
 newtype TagSummary = TagSummary
   { tag :: Tag
   }
   
 runTagSummary (TagSummary o) = o
 
+-- | A language summary record.
 newtype LangSummary = LangSummary
   { key :: Key
   , name :: String
@@ -23,6 +33,7 @@ newtype LangSummary = LangSummary
   
 runLangSummary (LangSummary o) = o
 
+-- | A full language record.
 newtype Lang = Lang
   { key :: Key
   , name :: String
@@ -34,6 +45,7 @@ newtype Lang = Lang
       
 runLang (Lang o) = o
   
+-- | The empty language record.
 emptyLang :: Lang
 emptyLang = Lang
   { key: ""
