@@ -67,6 +67,11 @@ render ctx st _ _ =
     [ H.h2' [ T.text lang.name ]
     , H.p (A.className "lead") [ T.text lang.description ]
     , H.p' [ H.a (A.href lang.homepage) [ T.text lang.homepage ] ]
+    , H.p' [ H.button (A.className "btn btn-primary")
+                      [ H.span (A.className "badge") [ T.text (show (toNumber (lang.rating))) ]
+                      , T.text " Likes"
+                      ] 
+           ]
     , H.p' [ H.small' [ H.a (A.href "#" <> T.onClick ctx (const (LoadEditLang (Lang lang)))) [ T.text "Edit" ] ] ]
     , renderTags lang.tags
     ]

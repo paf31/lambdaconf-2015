@@ -121,8 +121,8 @@ getHandler db = do
           send "Not found"
         Just val -> send val
         
-rateHandler :: RefVal DB -> (Int -> Int) -> Handler
-rateHandler db f = do
+rateHandler :: RefVal DB -> Handler
+rateHandler db = do
   idParam <- getRouteParam "id"
   case idParam of
     Nothing -> nextThrow (error "id parameter is required") 
@@ -133,7 +133,7 @@ rateHandler db f = do
           setStatus 404
           send "Not found"
         Just _ -> do
-          liftEff $ modifyRef db $ M.update (\(Lang lang) -> Just $ Lang (lang { rating = f lang.rating })) _id
+          liftEff $ modifyRef db $ M.update (\(Lang lang) -> Just $ Lang (lang { rating = one + lang.rating })) _id
           send "ok"
         
 putHandler :: RefVal DB -> Handler
@@ -205,8 +205,7 @@ app db = do
   get "/api/lang/:id" (getHandler db)
   put "/api/lang/:id" (putHandler db)
 
-  post "/api/lang/:id/like" (rateHandler db (+ one))
-  post "/api/lang/:id/dislike" (rateHandler db (+ (fromNumber (-1))))
+  post "/api/lang/:id/like" (rateHandler db)
   
   get "/api/tag" (tagsHandler db)
   get "/api/tag/:tag" (tagHandler db)
