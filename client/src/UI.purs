@@ -1,3 +1,12 @@
+-- | This module defines the views and application logic for the Programming Language
+-- | Database application.
+-- |
+-- | The client is structured as a SPA (single-page application) written using the
+-- | Thermite library.
+-- |
+-- | The page is defined by its _state_, and we define _actions_ which act on those
+-- | states. Actions can be connected to buttons or other inputs, as we will see.
+
 module UI where
 
 import Debug.Trace
@@ -22,8 +31,20 @@ import UI.Types
 import UI.AJAX
 import UI.Utils
 
+-- | The type of application states.
+-- |
+-- | Our state type is a sum, with one constructor for each subpage.
+-- | 
+-- | There are four main subpages:
+-- |
+-- | - The main page, which shows a list of languages and tags.
+-- | - A page for viewing a single language in detail
+-- | - A page for viewing languages with a selected tag
+-- | - A page for creating and editing languages
+-- |
+-- | We also define subpages for errors and the loading message.
 data State 
-  = ListLangs [LangSummary] [TagSummary]
+  = Home [LangSummary] [TagSummary]
   | ViewLang Lang
   | ViewTag Tag [LangSummary]
   | EditLang Lang
@@ -56,7 +77,7 @@ render ctx st _ _ =
   renderPage :: State -> [T.Html _]
   renderPage Loading = [ T.text "Loading..." ]
   renderPage (Error err) = [ T.text err ]
-  renderPage (ListLangs langs tags) = 
+  renderPage (Home langs tags) = 
     [ H.h2' [ T.text "Tags" ]
     , renderTags (map (_.tag <<< runTagSummary) tags)
     , H.h2' [ T.text "Languages" ]
@@ -72,9 +93,7 @@ render ctx st _ _ =
     , editLangBtn "Add Language" lang
     ]
   renderPage (ViewTag tag langs) = 
-    [ H.h2' [ T.text "Tag "
-            , H.span (A.className "label label-default") [ T.text tag ] 
-            ]
+    [ H.h2' [ T.text ("Languages Tagged " <> show tag) ]
     , renderSummaries langs
     ]
   renderPage (EditLang newLang) =
@@ -179,7 +198,7 @@ performAction :: T.PerformAction _ State _ Action
 performAction _ LoadList = do
   langs <- listLangs
   tags <- listTags
-  let listData = ListLangs <$> langs <*> tags
+  let listData = Home <$> langs <*> tags
   T.setState (either Error id listData)
 performAction _ (LoadLang key) = do
   T.setState $ Loading
