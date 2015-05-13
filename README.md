@@ -42,4 +42,4 @@ pulp dep update
 pulp run
 ```
 
-Open your browser to http://localhost:9000 to view the project.
+Open your browser to <http://localhost:9000> to view the project.
