@@ -20,70 +20,7 @@ import Node.Express.Types
 import Node.Express.App
 import Node.Express.Handler
 
-type Key = String
-
-newtype Lang = Lang
-  { key :: Key
-  , name :: String
-  , description :: String
-  , homepage :: String
-  , rating :: Int
-  , tags :: [String]
-  }
-  
-runLang (Lang lang) = lang
-
-type DB = M.Map Key Lang
-
--- Ratings based on number of GitHub search results
-
-purescript :: Lang
-purescript = Lang
-  { key: "purescript"
-  , name: "PureScript"
-  , description: "A small strongly typed programming language that compiles to JavaScript"
-  , homepage: "http://purescript.org/"
-  , rating: fromNumber 463
-  , tags: [ "Pure", "Functional", "Static", "AltJS" ]
-  }
-  
-haskell :: Lang
-haskell = Lang
-  { key: "haskell"
-  , name: "Haskell"
-  , description: "An advanced purely-functional programming language"
-  , homepage: "http://haskell.org/"
-  , rating: fromNumber 16586
-  , tags: [ "Pure", "Functional", "Static", "Lazy" ]
-  }
-
-clojure :: Lang
-clojure = Lang
-  { key: "clojure"
-  , name: "Clojure"
-  , description: "A dynamic programming language that targets the Java Virtual Machine"
-  , homepage: "http://clojure.org/"
-  , rating: fromNumber 14616
-  , tags: [ "Functional", "JVM", "Dynamic", "Lisp" ]
-  }
-
-befunge :: Lang
-befunge = Lang
-  { key: "befunge"
-  , name: "Befunge"
-  , description: "A two-dimensional esoteric programming language"
-  , homepage: "https://esolangs.org/wiki/Befunge"
-  , rating: fromNumber 153
-  , tags: [ "2D", "Esoteric" ]
-  }
-
-initialDb :: DB
-initialDb = M.fromList 
-  [ Tuple "purescript" purescript
-  , Tuple "haskell" haskell
-  , Tuple "clojure" clojure
-  , Tuple "befunge" befunge
-  ]
+import DB
 
 indexHandler :: Handler
 indexHandler = send 
@@ -92,13 +29,12 @@ indexHandler = send
   , tag: "http://localhost:9000/api/tag"
   }
  
-shortLang :: Tuple Key Lang -> { key :: Key, name :: String, uri :: String, like :: String, dislike :: String }
+shortLang :: Tuple Key Lang -> { key :: Key, name :: String, uri :: String, like :: String }
 shortLang (Tuple key (Lang o)) = 
   { key: key
   , name: o.name
-  , uri: "http://localhost:9000/api/lang/" <> key 
-  , like: "http://localhost:9000/api/lang/" <> key <> "/like"
-  , dislike: "http://localhost:9000/api/lang/" <> key <> "/dislike"
+  , uri: "http://localhost:9000/api/lang/" <> runInsensitive key 
+  , like: "http://localhost:9000/api/lang/" <> runInsensitive key <> "/like"
   }
 
 listHandler :: RefVal DB -> Handler
@@ -106,7 +42,7 @@ listHandler db = do
   m <- liftEff $ readRef db
   send <<< map shortLang <<< M.toList $ m
   where
-  fromTuple (Tuple key (Lang o)) = { key: key, name: o.name, uri: "http://localhost:9000/api/lang/" <> key }
+  fromTuple (Tuple key (Lang o)) = { key: runInsensitive key, name: o.name, uri: "http://localhost:9000/api/lang/" <> runInsensitive key }
 
 getHandler :: RefVal DB -> Handler
 getHandler db = do
@@ -115,7 +51,7 @@ getHandler db = do
     Nothing -> nextThrow (error "id parameter is required") 
     Just _id -> do
       m <- liftEff $ readRef db
-      case M.lookup _id m of
+      case M.lookup (insensitive _id) m of
         Nothing -> do
           setStatus 404
           send "Not found"
@@ -128,12 +64,12 @@ rateHandler db = do
     Nothing -> nextThrow (error "id parameter is required") 
     Just _id -> do
       m <- liftEff $ readRef db
-      case M.lookup _id m of
+      case M.lookup (insensitive _id) m of
         Nothing -> do
           setStatus 404
           send "Not found"
         Just _ -> do
-          liftEff $ modifyRef db $ M.update (\(Lang lang) -> Just $ Lang (lang { rating = one + lang.rating })) _id
+          liftEff $ modifyRef db $ M.update (\(Lang lang) -> Just $ Lang (lang { rating = one + lang.rating })) (insensitive _id)
           send "ok"
         
 putHandler :: RefVal DB -> Handler
@@ -146,7 +82,7 @@ putHandler db = do
       description <- getBodyParam "description"
       homepage <- getBodyParam "homepage"
       tags <- getBodyParam "tags"
-      let lang = { key: _id
+      let lang = { key: insensitive _id
                  , name: _
                  , description: _
                  , homepage: _
@@ -155,13 +91,13 @@ putHandler db = do
                  } <$> (name         `orDie` "Name is required")
                    <*> (description  `orDie` "Description is required")
                    <*> (homepage     `orDie` "Homepage is required")
-                   <*> (tags         `orDie` "Tags are required")
+                   <*> (map insensitive <$> (tags `orDie` "Tags are required"))
       case lang of
         Left err -> do
           setStatus 406
           send err
         Right lang -> do
-          liftEff $ modifyRef db $ M.insert _id $ Lang lang
+          liftEff $ modifyRef db $ M.insert (insensitive _id) $ Lang lang
           send "ok"
   where
   orDie :: forall a. Maybe a -> String -> Either String a
@@ -175,7 +111,7 @@ tagsHandler db = do
     lang <- M.values m
     (runLang lang).tags
   where
-  makeEntry tag = { tag: tag, uri: "http://localhost:9000/api/tag/" <> tag }
+  makeEntry tag = { tag: tag, uri: "http://localhost:9000/api/tag/" <> runInsensitive tag }
   
 tagHandler :: RefVal DB -> Handler
 tagHandler db = do
@@ -184,7 +120,7 @@ tagHandler db = do
     Nothing -> nextThrow (error "tag parameter is required") 
     Just _tag -> do
       m <- liftEff $ readRef db
-      send <<< map shortLang <<< filter (hasTag _tag) <<< M.toList $ m
+      send <<< map shortLang <<< filter (hasTag (insensitive _tag)) <<< M.toList $ m
   where
   hasTag t (Tuple _ (Lang o)) = t `elem` o.tags 
 
@@ -211,5 +147,5 @@ app db = do
   get "/api/tag/:tag" (tagHandler db)
 
 main = do
-  db <- newRef initialDb
-  listenHttp (app db) 9000 \_ -> trace "Listening on port 9000"
+  ref <- newRef db
+  listenHttp (app ref) 9000 \_ -> trace "Listening on port 9000"

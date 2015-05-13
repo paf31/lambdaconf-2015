@@ -106,7 +106,7 @@ render ctx st _ _ =
     , H.p (A.className "lead") [ T.text l.description ]
     , H.p' [ H.a (A.href l.homepage) [ T.text l.homepage ] ]
     , ratingsButton lang
-    , editLangBtn "Add Language" lang
+    , editLangBtn "Edit" lang
     ]
   renderPage (ViewTag tag langs) = 
     [ H.h2' [ T.text ("Languages Tagged " <> show tag) ]
