@@ -17,6 +17,8 @@ import Data.Maybe
 import Data.Either
 import Data.String (split, joinWith)
 
+import Data.Validation
+
 import Control.Monad.Eff
 
 import qualified Thermite as T
@@ -30,6 +32,9 @@ import qualified Thermite.Types as T
 import UI.Types
 import UI.AJAX
 import UI.Utils
+
+-- | Validations errors are just an array of strings
+type ValidationErrors = [String]
 
 -- | The type of application states.
 -- |
@@ -47,7 +52,7 @@ data State
   = Home [LangSummary] [TagSummary]
   | ViewLang Lang
   | ViewTag Tag [LangSummary]
-  | EditLang Lang
+  | EditLang ValidationErrors Lang
   | Loading
   | Error String
 
@@ -112,8 +117,9 @@ render ctx st _ _ =
     [ H.h2' [ T.text ("Languages Tagged " <> show tag) ]
     , renderSummaries langs
     ]
-  renderPage (EditLang newLang) =
+  renderPage (EditLang errs newLang) =
     [ H.h2' [ T.text "Edit Language" ]
+    , validationErrors errs
     , editLangForm newLang
     ]
 
@@ -152,6 +158,11 @@ render ctx st _ _ =
                     , T.text " Likes"
                     ] 
          ]
+         
+  -- | Render the validation errors box
+  validationErrors :: ValidationErrors -> T.Html _
+  validationErrors [] = H.div' []
+  validationErrors xs = H.div (A.className "alert alert-warning") (map (H.div' <<< pure <<< T.text) xs)
          
   -- | Render the 'Edit Language' subpage           
   editLangForm :: Lang -> T.Html _
@@ -215,6 +226,24 @@ render ctx st _ _ =
         ]
       ]
 
+-- | Validate the 'Edit Language' form
+validateForm :: Lang -> V ValidationErrors Lang
+validateForm (Lang l) = Lang <$>
+  ({ key: _
+  , name: _
+  , description: _
+  , homepage: _
+  , rating: l.rating
+  , tags: _
+  } <$> required "key" l.key
+    <*> required "name" l.name
+    <*> required "description" l.description
+    <*> required "homepage" l.homepage
+    <*> pure (l.tags))
+  where
+  required lbl "" = invalid [lbl <> " is required"]
+  required _ s = pure s
+
 -- | This function takes an action and produces a computation in Thermite's 
 -- | `Action` monad.
 -- | 
@@ -235,16 +264,23 @@ performAction _ (LoadTag tag) = do
   langs <- getTag tag
   T.setState (either Error (ViewTag tag) langs)
 performAction _ (LoadEditLang lang) =
-  T.setState (EditLang lang)
+  T.setState (EditLang [] lang)
 performAction _ (UpdateForm f) = do
-  EditLang lang <- T.getState
-  T.setState (EditLang (f lang))
+  EditLang errs lang <- T.getState
+  T.setState (EditLang errs (f lang))
 performAction props SaveLang = do
-  EditLang lang <- T.getState
-  response <- putLang lang
-  case response of
-    Left err -> T.setState (Error err)
-    Right Ok -> performAction props LoadList
+  EditLang _ lang <- T.getState
+  runV (showErrors lang) save (validateForm lang)
+  where
+  showErrors :: Lang -> ValidationErrors -> T.Action _ State Unit
+  showErrors lang errs = T.setState (EditLang errs lang)
+
+  save :: Lang -> T.Action _ State Unit
+  save lang = do
+    response <- putLang lang
+    case response of
+      Left err -> T.setState (Error err)
+      Right Ok -> performAction props LoadList
 
 -- | The specification for our component, along with a hook to perform an
 -- | action after it is mounted.
