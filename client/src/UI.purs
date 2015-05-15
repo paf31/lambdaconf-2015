@@ -23,9 +23,13 @@ import qualified Thermite as T
 import qualified Thermite.Html as T
 import qualified Thermite.Html.Elements as H
 import qualified Thermite.Html.Attributes as A
+import qualified Thermite.Html.Attributes.Unsafe as Unsafe
 import qualified Thermite.Events as T
 import qualified Thermite.Action as T
 import qualified Thermite.Types as T
+
+import qualified Thermite.SVG as S
+import qualified Thermite.SVG.Attributes as SA
 
 import UI.Types
 import UI.AJAX
@@ -99,6 +103,8 @@ render ctx st _ _ =
     , H.h2' [ T.text "Languages" ]
     , renderSummaries langs 
     , editLangBtn "Add Language" emptyLang
+    , H.h2' [ T.text "Most Popular Languages" ]
+    , renderPopularLanguages
     ]
   renderPage (ViewLang lang@(Lang l)) = 
     [ H.h2' [ T.text l.name ]
@@ -142,6 +148,38 @@ render ctx st _ _ =
                           [ T.text text ] 
                     ]
          ]
+         
+  -- | TODO: Modify this function to render the top five most popular languages
+  -- | based on their ratings as a bar graph.
+  -- |
+  -- | You will need to load the data from the server, use a data structure to
+  -- | represent the data, and pass that structure to this function as an argument.
+  -- |
+  -- | Here is a simple graphic to help you get started.
+  -- |
+  -- | Note: Due to a limitation of React, we have to use `Unsafe.innerHTML` instead
+  -- | of `T.text` when creating text nodes :(
+  renderPopularLanguages :: T.Html _
+  renderPopularLanguages = H.p' 
+    [ S.svg (A.width "300" <> A.height "300")
+            [ S.circle (SA.cx        "150" 
+                        <> SA.cy     "150" 
+                        <> SA.r      "100" 
+                        <> SA.fill   "red" 
+                        <> SA.stroke "black") []
+            , S.rect (SA.x         "50" 
+                      <> SA.y      "50" 
+                      <> A.width   "100"
+                      <> A.height  "100" 
+                      <> SA.fill   "blue" 
+                      <> SA.stroke "black") []
+            , S.text (SA.x         "50" 
+                      <> SA.y      "250" 
+                      <> SA.fontFamily   "sans-serif" 
+                      <> SA.fontSize "24px"
+                      <> Unsafe.innerHTML "Here is some text") []
+            ]
+    ]
        
   -- | Render a ratings button for a language             
   ratingsButton :: Lang -> T.Html _
