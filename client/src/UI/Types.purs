@@ -55,6 +55,15 @@ emptyLang = Lang
   , rating: zero :: Int
   , tags: []
   }
+  
+-- | A language in the popular languages list.
+newtype PopularLanguage = PopularLanguage
+  { key :: Key
+  , name :: String
+  , rating :: Int
+  }
+  
+runPopularLanguage (PopularLanguage o) = o
 
 instance isForeignOk :: IsForeign Ok where
   read _ = return Ok
@@ -67,6 +76,13 @@ instance langSummaryIsForeign :: IsForeign LangSummary where
     ({ key: _, name: _ }
       <$> readProp "key" value
       <*> readProp "name" value)
+
+instance popularLanguageIsForeign :: IsForeign PopularLanguage where
+  read value = PopularLanguage <$> 
+    ({ key: _, name: _, rating: _ }
+      <$> readProp "key" value
+      <*> readProp "name" value
+      <*> (fromNumber <$> readProp "rating" value))
 
 instance langIsForeign :: IsForeign Lang where
   read value = Lang <$> 

@@ -20,6 +20,7 @@
     "purescript-thermite": "~0.7.4",
     "purescript-integers": "~0.1.0",
     "purescript-affjax": "~0.2.1",
-    "purescript-strings": "~0.4.5"
+    "purescript-strings": "~0.4.5",
+    "purescript-math": "~0.1.1"
   }
 }

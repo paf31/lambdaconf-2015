@@ -6,7 +6,8 @@ import Data.Int
 import Data.Maybe
 import Data.Tuple
 import Data.Either
-import Data.Array (filter, map, nub, sort)
+import Data.Function (on)
+import Data.Array (filter, map, nub, sort, take, sortBy)
 import Data.Foldable (elem)
 
 import qualified Data.Map as M
@@ -56,6 +57,14 @@ getHandler db = do
           setStatus 404
           send "Not found"
         Just val -> send val
+        
+popularHandler :: RefVal DB -> Handler
+popularHandler db = do
+  m <- liftEff $ readRef db
+  send <<< getTop5 <<< M.values $ m
+  where
+  getTop5 = map toObject <<< take 5 <<< sortBy (flip (compare `on` (_.rating <<< runLang)))
+  toObject (Lang o) = { key: runInsensitive o.key, name: o.name, rating: o.rating }
         
 rateHandler :: RefVal DB -> Handler
 rateHandler db = do
@@ -142,6 +151,8 @@ app db = do
   put "/api/lang/:id" (putHandler db)
 
   post "/api/lang/:id/like" (rateHandler db)
+  
+  get "/api/popular" (popularHandler db)
   
   get "/api/tag" (tagsHandler db)
   get "/api/tag/:tag" (tagHandler db)

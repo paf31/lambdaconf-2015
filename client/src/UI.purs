@@ -11,11 +11,17 @@ module UI where
 
 import Debug.Trace
 
+import Math
+
 import Data.Int
-import Data.Array (concatMap, map)
+import Data.Array
 import Data.Maybe
+import Data.Tuple
 import Data.Either
+import Data.Function
 import Data.String (split, joinWith)
+import Data.Foldable (foldl)
+import Data.Traversable (traverse)
 
 import Control.Monad.Eff
 
@@ -48,6 +54,7 @@ import UI.Utils
 -- |
 -- | We also define subpages for errors and the loading message.
 data State 
+  -- TODO: Add a field of type [PopularLanguage] to 'Home'
   = Home [LangSummary] [TagSummary]
   | ViewLang Lang
   | ViewTag Tag [LangSummary]
@@ -104,6 +111,7 @@ render ctx st _ _ =
     , renderSummaries langs 
     , editLangBtn "Add Language" emptyLang
     , H.h2' [ T.text "Most Popular Languages" ]
+    -- TODO: modify this call to pass the popular languages array
     , renderPopularLanguages
     ]
   renderPage (ViewLang lang@(Lang l)) = 
@@ -152,34 +160,28 @@ render ctx st _ _ =
   -- | TODO: Modify this function to render the top five most popular languages
   -- | based on their ratings as a bar graph.
   -- |
-  -- | You will need to load the data from the server, use a data structure to
-  -- | represent the data, and pass that structure to this function as an argument.
+  -- | You will need to add an argument of type `[PopularLanguage]`.
   -- |
   -- | Here is a simple graphic to help you get started.
   -- |
   -- | Note: Due to a limitation of React, we have to use `Unsafe.innerHTML` instead
   -- | of `T.text` when creating text nodes :(
   renderPopularLanguages :: T.Html _
-  renderPopularLanguages = H.p' 
-    [ S.svg (A.width "300" <> A.height "300")
-            [ S.circle (SA.cx        "150" 
-                        <> SA.cy     "150" 
-                        <> SA.r      "100" 
-                        <> SA.fill   "red" 
-                        <> SA.stroke "black") []
-            , S.rect (SA.x         "50" 
-                      <> SA.y      "50" 
-                      <> A.width   "100"
-                      <> A.height  "100" 
-                      <> SA.fill   "blue" 
-                      <> SA.stroke "black") []
-            , S.text (SA.x         "50" 
-                      <> SA.y      "250" 
-                      <> SA.fontFamily   "sans-serif" 
-                      <> SA.fontSize "24px"
-                      <> Unsafe.innerHTML "Here is some text") []
-            ]
-    ]
+  renderPopularLanguages = 
+    S.svg (A.width "300" <> A.height "300") 
+      [ S.rect (SA.x         "5" 
+                <> SA.y      "5"
+                <> A.width   "200"
+                <> A.height  "40" 
+                <> SA.fill   "#2780e3" 
+                <> SA.stroke "#222222") []
+      , S.text (SA.x         "210"
+                <> SA.y      "21"
+                <> SA.fontFamily   "sans-serif" 
+                <> SA.fontSize "14px"
+                <> SA.fill "#222222"
+                <> Unsafe.innerHTML "Haskell") []
+      ]
        
   -- | Render a ratings button for a language             
   ratingsButton :: Lang -> T.Html _
@@ -262,6 +264,7 @@ performAction :: T.PerformAction _ State _ Action
 performAction _ LoadList = do
   langs <- listLangs
   tags <- listTags
+  -- TODO: load the list of popular languages
   let listData = Home <$> langs <*> tags
   T.setState (either Error id listData)
 performAction _ (LoadLang key) = do

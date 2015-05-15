@@ -70,3 +70,6 @@ putLang lang = ajax $ affjax $
 -- | Get a list of language summaries for a tag.             
 getTag :: forall eff. Tag -> AjaxAction eff [LangSummary]
 getTag tag = ajax <<< get $ "/api/tag/" <> tag
+
+-- | TODO: Implement getPopular. Don't forget to export it!
+-- | getPopular :: forall eff. AjaxAction eff [PopularLanguage]
