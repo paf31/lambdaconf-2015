@@ -71,7 +71,6 @@ data Action
   | LoadList
   | LoadLang Key
   | LoadTag Tag
-  | LoadNewLang
   | LoadEditLang (Maybe Key)
   | UpdateForm (Lang -> Lang)
   | SaveLang
