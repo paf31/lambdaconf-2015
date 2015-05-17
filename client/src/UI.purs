@@ -17,6 +17,8 @@ import Data.Maybe
 import Data.Either
 import Data.String (split, joinWith)
 
+import Control.Apply
+import Control.Alt
 import Control.Monad.Eff
 
 import qualified Thermite as T
@@ -26,6 +28,11 @@ import qualified Thermite.Html.Attributes as A
 import qualified Thermite.Events as T
 import qualified Thermite.Action as T
 import qualified Thermite.Types as T
+
+import Routing
+import Routing.Hash (getHash)
+import Routing.Match
+import Routing.Match.Class
 
 import UI.Types
 import UI.AJAX
@@ -60,11 +67,12 @@ data State
 -- | The `UpdateLang` action applies a function to synchronize the state value
 -- | with the state of the form.
 data Action
-  = LoadList
+  = Init
+  | LoadList
   | LoadLang Key
   | LoadTag Tag
   | LoadNewLang
-  | LoadEditLang Lang
+  | LoadEditLang (Maybe Key)
   | UpdateForm (Lang -> Lang)
   | SaveLang
   
@@ -98,14 +106,14 @@ render ctx st _ _ =
     , renderTags (map (_.tag <<< runTagSummary) tags)
     , H.h2' [ T.text "Languages" ]
     , renderSummaries langs 
-    , editLangBtn "Add Language" emptyLang
+    , editLangBtn "Add Language" Nothing
     ]
-  renderPage (ViewLang lang@(Lang l)) = 
+  renderPage (ViewLang (Lang l)) = 
     [ H.h2' [ T.text l.name ]
     , renderTags l.tags
     , H.p (A.className "lead") [ T.text l.description ]
     , H.p' [ H.a (A.href l.homepage) [ T.text l.homepage ] ]
-    , editLangBtn "Edit" lang
+    , editLangBtn "Edit" (Just l.key)
     ]
   renderPage (ViewTag tag langs) = 
     [ H.h2' [ T.text ("Languages Tagged " <> show tag) ]
@@ -120,7 +128,7 @@ render ctx st _ _ =
   renderSummaries :: [LangSummary] -> T.Html _
   renderSummaries = H.ul' <<< map (renderSummary <<< runLangSummary)
     where
-    renderSummary summary = H.li' [ H.a (A.href "#" <> T.onClick ctx (const (LoadLang summary.key))) 
+    renderSummary summary = H.li' [ H.a (A.href ("#lang/" <> summary.key)) 
                                     [ T.text summary.name ] 
                                   ]
 
@@ -134,7 +142,7 @@ render ctx st _ _ =
                     ]                   
           
   -- | Render a button which links to the 'Edit Language' subpage 
-  editLangBtn :: String -> Lang -> T.Html _
+  editLangBtn :: String -> Maybe Key -> T.Html _
   editLangBtn text lang = 
     H.p' [ H.small' [ H.a (A.href "#" 
                            <> T.onClick ctx (const (LoadEditLang lang))) 
@@ -210,6 +218,13 @@ render ctx st _ _ =
 -- | The `Action` monad can read the current state, update the state, and perform
 -- | asynchronous tasks, including AJAX requests.
 performAction :: T.PerformAction _ State _ Action
+performAction props Init = do
+  match <- matchHash route <$> T.sync getHash
+  case match of
+    Left err -> T.setState (Error (show err))
+    Right action -> performAction props action
+  nextAction <- T.async $ \k -> matches route \_ action -> k action
+  performAction props nextAction
 performAction _ LoadList = do
   langs <- listLangs
   tags <- listTags
@@ -223,8 +238,11 @@ performAction _ (LoadTag tag) = do
   T.setState $ Loading
   langs <- getTag tag
   T.setState (either Error (ViewTag tag) langs)
-performAction _ (LoadEditLang lang) =
-  T.setState (EditLang lang)
+performAction _ (LoadEditLang Nothing) =
+  T.setState (EditLang emptyLang)
+performAction _ (LoadEditLang (Just key)) = do
+  lang <- getLang key
+  T.setState (either Error EditLang lang)
 performAction _ (UpdateForm f) = do
   EditLang lang <- T.getState
   T.setState (EditLang (f lang))
@@ -239,7 +257,12 @@ performAction props SaveLang = do
 -- | action after it is mounted.
 spec :: T.Spec _ State _ Action
 spec = T.simpleSpec initialState performAction render
-         # T.componentWillMount LoadList
+           # T.componentWillMount Init
+
+-- | Our routing table
+route :: Match Action
+route = LoadLang <$> (lit "lang" *> str)
+    <|> pure LoadList
 
 -- | The main function simply creates a class from our `spec`, and renders it
 -- | to the document body.
