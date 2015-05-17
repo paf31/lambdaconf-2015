@@ -105,6 +105,7 @@ render ctx st _ _ =
     , renderTags l.tags
     , H.p (A.className "lead") [ T.text l.description ]
     , H.p' [ H.a (A.href l.homepage) [ T.text l.homepage ] ]
+    , ratingsButton lang
     , editLangBtn "Edit" lang
     ]
   renderPage (ViewTag tag langs) = 
@@ -142,6 +143,12 @@ render ctx st _ _ =
                     ]
          ]
        
+  -- | Render a ratings button for a language             
+  ratingsButton :: Lang -> T.Html _
+  ratingsButton lang = 
+    let likes = toNumber ((runLang lang).rating) in 
+    H.p' [ T.text "Implement the Like button here" ]
+   
   -- | Render the 'Edit Language' subpage           
   editLangForm :: Lang -> T.Html _
   editLangForm (Lang lang) = 
