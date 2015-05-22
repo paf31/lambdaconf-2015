@@ -1,0 +1,39 @@
+{
+  "name": "purescript-parsing",
+  "homepage": "https://github.com/purescript-contrib/purescript-parsing",
+  "description": "Parser combinator library",
+  "keywords": [
+    "purescript"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "bower_components",
+    "node_modules",
+    "output",
+    "tests",
+    "tmp",
+    "bower.json",
+    "Gruntfile.js",
+    "package.json"
+  ],
+  "dependencies": {
+    "purescript-transformers": "~0.5.0",
+    "purescript-either": "~0.1.4",
+    "purescript-identity": "~0.3.0",
+    "purescript-maybe": "~0.2.1",
+    "purescript-arrays": "~0.3.0",
+    "purescript-strings": "~0.4.2",
+    "purescript-foldable-traversable": "~0.3.0"
+  },
+  "version": "0.3.1",
+  "_release": "0.3.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.3.1",
+    "commit": "c06eab2edadb46eb248804c3f2a56b5006f45648"
+  },
+  "_source": "git://github.com/purescript/purescript-parsing.git",
+  "_target": "0.3.x",
+  "_originalSource": "purescript-parsing"
+}
