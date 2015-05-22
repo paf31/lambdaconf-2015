@@ -1,0 +1,20 @@
+{
+  "name": "purescript-monad-eff",
+  "version": "0.0.0",
+  "homepage": "https://github.com/paf31/purescript-monad-eff",
+  "authors": [
+    "Phil Freeman <paf31@cantab.net>"
+  ],
+  "description": "A type class for monads which support native effects",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "purescript-transformers": "~0.5.0"
+  }
+}
