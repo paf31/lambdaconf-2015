@@ -1,0 +1,29 @@
+{
+  "name": "purescript-validation",
+  "ignore": [
+    "**/.*",
+    "bower_components",
+    "node_modules",
+    "output",
+    "tests",
+    "tmp",
+    "bower.json",
+    "Gruntfile.js",
+    "package.json"
+  ],
+  "dependencies": {
+    "purescript-control": "~0.2.5"
+  },
+  "homepage": "https://github.com/purescript/purescript-validation",
+  "version": "0.1.1",
+  "_release": "0.1.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.1.1",
+    "commit": "c0e73093e191066184547c0e4e48b3e5ecb8b3b2"
+  },
+  "_source": "git://github.com/purescript/purescript-validation.git",
+  "_target": "~0.1.1",
+  "_originalSource": "purescript-validation",
+  "_direct": true
+}
