@@ -55,7 +55,7 @@ import UI.Utils
 -- | We also define subpages for errors and the loading message.
 data State 
   -- TODO: Add a field of type [PopularLanguage] to 'Home'
-  = Home [LangSummary] [TagSummary]
+  = Home [LangSummary] [TagSummary] [PopularLanguage]
   | ViewLang Lang
   | ViewTag Tag [LangSummary]
   | EditLang Lang
@@ -104,15 +104,14 @@ render ctx st _ _ =
   renderPage :: State -> [T.Html _]
   renderPage Loading = [ T.text "Loading..." ]
   renderPage (Error err) = [ T.text err ]
-  renderPage (Home langs tags) = 
+  renderPage (Home langs tags popular) = 
     [ H.h2' [ T.text "Tags" ]
     , renderTags (map (_.tag <<< runTagSummary) tags)
     , H.h2' [ T.text "Languages" ]
     , renderSummaries langs 
     , editLangBtn "Add Language" emptyLang
     , H.h2' [ T.text "Most Popular Languages" ]
-    -- TODO: modify this call to pass the popular languages array
-    , renderPopularLanguages
+    , renderPopularLanguages popular
     ]
   renderPage (ViewLang lang@(Lang l)) = 
     [ H.h2' [ T.text l.name ]
@@ -166,21 +165,27 @@ render ctx st _ _ =
   -- |
   -- | Note: Due to a limitation of React, we have to use `Unsafe.innerHTML` instead
   -- | of `T.text` when creating text nodes :(
-  renderPopularLanguages :: T.Html _
-  renderPopularLanguages = 
-    S.svg (A.width "300" <> A.height "300") 
+  renderPopularLanguages :: [PopularLanguage] -> T.Html _
+  renderPopularLanguages langs =
+    let maxWidth = foldl max 0 (map (toNumber <<< _.rating <<< runPopularLanguage) langs)
+        indexed = zip langs (0 .. length langs)
+
+    in S.svg (A.width "300" <> A.height "300") $ flip concatMap indexed \(Tuple lang pos) ->
+      let w = toNumber (runPopularLanguage lang).rating / maxWidth * 200
+          y = 50 * pos + 20 
+      in
       [ S.rect (SA.x         "5" 
-                <> SA.y      "5"
-                <> A.width   "200"
+                <> SA.y      (show y)  
+                <> A.width   (show w)
                 <> A.height  "40" 
                 <> SA.fill   "#2780e3" 
                 <> SA.stroke "#222222") []
-      , S.text (SA.x         "210"
-                <> SA.y      "21"
+      , S.text (SA.x         (show (w + 10))
+                <> SA.y      (show (y + 10))
                 <> SA.fontFamily   "sans-serif" 
                 <> SA.fontSize "14px"
                 <> SA.fill "#222222"
-                <> Unsafe.innerHTML "Haskell") []
+                <> Unsafe.innerHTML (runPopularLanguage lang).name) []
       ]
        
   -- | Render a ratings button for a language             
@@ -264,8 +269,8 @@ performAction :: T.PerformAction _ State _ Action
 performAction _ LoadList = do
   langs <- listLangs
   tags <- listTags
-  -- TODO: load the list of popular languages
-  let listData = Home <$> langs <*> tags
+  popular <- getPopular
+  let listData = Home <$> langs <*> tags <*> popular
   T.setState (either Error id listData)
 performAction _ (LoadLang key) = do
   T.setState $ Loading

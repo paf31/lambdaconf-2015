@@ -7,6 +7,7 @@ module UI.AJAX
   , getLang
   , putLang
   , getTag
+  , getPopular
   ) where
     
 import Data.Int
@@ -72,4 +73,5 @@ getTag :: forall eff. Tag -> AjaxAction eff [LangSummary]
 getTag tag = ajax <<< get $ "/api/tag/" <> tag
 
 -- | TODO: Implement getPopular. Don't forget to export it!
--- | getPopular :: forall eff. AjaxAction eff [PopularLanguage]
+getPopular :: forall eff. AjaxAction eff [PopularLanguage]
+getPopular = ajax <<< get $ "/api/popular"
