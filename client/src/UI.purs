@@ -182,6 +182,17 @@ render ctx st _ _ =
                 <> SA.fill "#222222"
                 <> Unsafe.innerHTML "Haskell") []
       ]
+
+    where
+    -- you might find these functions useful
+    maxRating :: [PopularLanguage] -> Number
+    maxRating langs = foldl max 0 (map (toNumber <<< _.rating <<< runPopularLanguage) langs)
+
+    widthOf :: PopularLanguage -> Number -> Number
+    widthOf lang max = toNumber (runPopularLanguage lang).rating / max * 200
+
+    withIndex :: forall a. [a] -> [Tuple a Number]
+    withIndex xs = zip xs (0 .. length xs)
        
   -- | Render a ratings button for a language             
   ratingsButton :: Lang -> T.Html _
