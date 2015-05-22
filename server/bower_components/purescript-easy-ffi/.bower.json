@@ -1,0 +1,23 @@
+{
+  "name": "purescript-easy-ffi",
+  "version": "1.0.1",
+  "description": "Easy FFI for PureScript",
+  "main": "src/EasyFFI.purs",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "gulpfile.js",
+    "package.json"
+  ],
+  "private": false,
+  "homepage": "https://github.com/pelotom/purescript-easy-ffi",
+  "_release": "1.0.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.0.1",
+    "commit": "f1e3df288572c32be18e2bf8cb65bec24342ca54"
+  },
+  "_source": "git://github.com/pelotom/purescript-easy-ffi.git",
+  "_target": "1.0.x",
+  "_originalSource": "purescript-easy-ffi"
+}

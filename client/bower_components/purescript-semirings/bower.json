@@ -1,0 +1,16 @@
+{
+  "name": "purescript-semirings",
+  "moduleType": [
+    "node"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "dependencies": {
+    "purescript-arrays": "~0.3.5",
+    "purescript-foldable-traversable": "~0.3.1"
+  }
+}
