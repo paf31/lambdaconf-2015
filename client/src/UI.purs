@@ -16,9 +16,11 @@ import Data.Array (concatMap, map)
 import Data.Maybe
 import Data.Either
 import Data.String (split, joinWith)
+import qualified Data.String.Regex as R
 
 import Data.Validation
 
+import Control.Apply
 import Control.Monad.Eff
 
 import qualified Thermite as T
@@ -243,6 +245,12 @@ validateForm (Lang l) = Lang <$>
   where
   required lbl "" = invalid [lbl <> " is required"]
   required _ s = pure s
+
+  matchesRegex :: String -> String -> R.Regex -> V ValidationErrors String
+  matchesRegex lbl value regex = pure value -- TODO: implement this function 
+
+  uriRegex :: R.Regex
+  uriRegex = R.regex """(http|ftp|https)://[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?""" R.noFlags
 
 -- | This function takes an action and produces a computation in Thermite's 
 -- | `Action` monad.
