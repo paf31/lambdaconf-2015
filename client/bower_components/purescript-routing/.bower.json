@@ -1,0 +1,48 @@
+{
+  "name": "purescript-routing",
+  "homepage": "https://github.com/slamdata/purescript-routing",
+  "authors": [
+    "Maxim Zimaliev <zimaliev@yandex.ru>"
+  ],
+  "description": "purescript library for routing",
+  "keywords": [
+    "purescript",
+    "routing"
+  ],
+  "license": "Apache 2.0",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "purescript-strings": "~0.4.3",
+    "purescript-maps": "~0.3.2",
+    "purescript-control": "~0.2.2",
+    "purescript-transformers": "~0.5.1",
+    "purescript-arrays": "~0.3.3",
+    "purescript-monoid": "~0.2.0",
+    "purescript-validation": "~0.1.1",
+    "purescript-semirings": "~0.1.1",
+    "purescript-lists": "~0.6.0",
+    "purescript-globals": "~0.1.6",
+    "purescript-dom": "~0.1.2",
+    "purescript-aff": "~0.10.0"
+  },
+  "devDependencies": {
+    "purescript-timers": "~0.0.8",
+    "purescript-debug-foreign": "~0.0.4"
+  },
+  "_release": "1e7cf5687d",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "1e7cf5687ddab496f926fce4f7d64fa587041f92"
+  },
+  "_source": "git://github.com/slamdata/purescript-routing.git",
+  "_target": "*",
+  "_originalSource": "purescript-routing",
+  "_direct": true
+}

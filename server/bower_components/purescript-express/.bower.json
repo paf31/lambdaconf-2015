@@ -1,0 +1,49 @@
+{
+  "name": "purescript-express",
+  "homepage": "https://github.com/dancingrobot84/purescript-express",
+  "description": "Purescript wrapper around Express.js",
+  "license": "BSD-3-Clause",
+  "keywords": [
+    "purescript"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output",
+    "tests",
+    "example",
+    "Gruntfile.js",
+    "package.json",
+    "bower.json",
+    "README.md",
+    "DOCS.md"
+  ],
+  "dependencies": {
+    "purescript-transformers": "0.5.x",
+    "purescript-foreign": "0.4.x",
+    "purescript-arrays": "0.3.x",
+    "purescript-maybe": "0.2.x",
+    "purescript-either": "0.1.x",
+    "purescript-strings": "0.4.x",
+    "purescript-easy-ffi": "1.0.x",
+    "purescript-control": "0.2.x",
+    "purescript-parsing": "0.3.x",
+    "purescript-foldable-traversable": "0.3.x",
+    "purescript-exceptions": "0.2.x",
+    "purescript-monad-eff": "0.1.0"
+  },
+  "devDependencies": {
+    "purescript-node-fs": "0.4.x"
+  },
+  "version": "0.2.0",
+  "_release": "0.2.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.2.0",
+    "commit": "f51761cb9bb2bfa798acc3bcc727c34427c77d37"
+  },
+  "_source": "git://github.com/dancingrobot84/purescript-express.git",
+  "_target": "~0.2.0",
+  "_originalSource": "purescript-express"
+}
