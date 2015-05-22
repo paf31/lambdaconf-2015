@@ -240,14 +240,16 @@ validateForm (Lang l) = Lang <$>
   } <$> required "key" l.key
     <*> required "name" l.name
     <*> required "description" l.description
-    <*> required "homepage" l.homepage
+    <*> (required "homepage" l.homepage *> matchesRegex "homepage" l.homepage uriRegex)
     <*> pure (l.tags))
   where
   required lbl "" = invalid [lbl <> " is required"]
   required _ s = pure s
 
   matchesRegex :: String -> String -> R.Regex -> V ValidationErrors String
-  matchesRegex lbl value regex = pure value -- TODO: implement this function 
+  matchesRegex lbl value regex 
+    | R.test regex value = pure value 
+    | otherwise = invalid [lbl <> " has the wrong format"]
 
   uriRegex :: R.Regex
   uriRegex = R.regex """(http|ftp|https)://[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?""" R.noFlags
