@@ -135,7 +135,7 @@ render ctx st _ _ =
   renderTags :: [Tag] -> T.Html _
   renderTags = H.p' <<< concatMap renderTag
     where
-    renderTag tag = [ H.a (A.href "#" <> A.className "label label-default" <> T.onClick ctx (const (LoadTag tag))) 
+    renderTag tag = [ H.a (A.href ("#tag/" <> tag) <> A.className "label label-default")
                         [ T.text tag ] 
                     , T.text " "
                     ]                   
@@ -143,8 +143,7 @@ render ctx st _ _ =
   -- | Render a button which links to the 'Edit Language' subpage 
   editLangBtn :: String -> Maybe Key -> T.Html _
   editLangBtn text lang = 
-    H.p' [ H.small' [ H.a (A.href "#" 
-                           <> T.onClick ctx (const (LoadEditLang lang))) 
+    H.p' [ H.small' [ H.a (A.href ("#edit" <> maybe "" ("/" <> ) lang))
                           [ T.text text ] 
                     ]
          ]
@@ -261,7 +260,12 @@ spec = T.simpleSpec initialState performAction render
 -- | Our routing table
 route :: Match Action
 route = LoadLang <$> (lit "lang" *> str)
+    <|> LoadTag <$> (lit "tag" *> str)
+    <|> LoadEditLang <$> (lit "edit" *> optional str)
     <|> pure LoadList
+  where
+  optional :: forall a. Match a -> Match (Maybe a)
+  optional m = Just <$> m <|> pure Nothing
 
 -- | The main function simply creates a class from our `spec`, and renders it
 -- | to the document body.
