@@ -167,11 +167,9 @@ render ctx st _ _ =
   -- | of `T.text` when creating text nodes :(
   renderPopularLanguages :: [PopularLanguage] -> T.Html _
   renderPopularLanguages langs =
-    let maxWidth = foldl max 0 (map (toNumber <<< _.rating <<< runPopularLanguage) langs)
-        indexed = zip langs (0 .. length langs)
-
-    in S.svg (A.width "300" <> A.height "300") $ flip concatMap indexed \(Tuple lang pos) ->
-      let w = toNumber (runPopularLanguage lang).rating / maxWidth * 200
+    let max = maxRating langs
+    in S.svg (A.width "300" <> A.height "300") $ flip concatMap (withIndex langs) \(Tuple lang pos) ->
+      let w = widthOf lang max
           y = 50 * pos + 20 
       in
       [ S.rect (SA.x         "5" 
@@ -187,6 +185,16 @@ render ctx st _ _ =
                 <> SA.fill "#222222"
                 <> Unsafe.innerHTML (runPopularLanguage lang).name) []
       ]
+    where
+    -- you might find these functions useful
+    maxRating :: [PopularLanguage] -> Number
+    maxRating langs = foldl max 0 (map (toNumber <<< _.rating <<< runPopularLanguage) langs)
+
+    widthOf :: PopularLanguage -> Number -> Number
+    widthOf lang max = toNumber (runPopularLanguage lang).rating / max * 200
+
+    withIndex :: forall a. [a] -> [Tuple a Number]
+    withIndex xs = zip xs (0 .. length xs)
        
   -- | Render a ratings button for a language             
   ratingsButton :: Lang -> T.Html _
