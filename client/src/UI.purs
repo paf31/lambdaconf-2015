@@ -62,6 +62,7 @@ data State
 data Action
   = LoadList
   | LoadLang Key
+  | LikeLang Key
   | LoadTag Tag
   | LoadNewLang
   | LoadEditLang Lang
@@ -147,7 +148,7 @@ render ctx st _ _ =
   ratingsButton :: Lang -> T.Html _
   ratingsButton lang = 
     let likes = toNumber ((runLang lang).rating) in 
-    H.p' [ T.text "Implement the Like button here" ]
+    H.button (A.className "btn btn-default" <> T.onClick ctx \_ -> LikeLang (runLang lang).key) [ T.text ("Like (" <> show likes <> ")") ]
    
   -- | Render the 'Edit Language' subpage           
   editLangForm :: Lang -> T.Html _
@@ -241,6 +242,11 @@ performAction props SaveLang = do
   case response of
     Left err -> T.setState (Error err)
     Right Ok -> performAction props LoadList
+performAction _ (LikeLang key) =do
+  response <- like key
+  case response of
+    Left err -> T.setState (Error err)
+    Right _ -> return unit
 
 -- | The specification for our component, along with a hook to perform an
 -- | action after it is mounted.

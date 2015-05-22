@@ -7,6 +7,7 @@ module UI.AJAX
   , getLang
   , putLang
   , getTag
+  , like
   ) where
     
 import Data.Int
@@ -70,3 +71,6 @@ putLang lang = ajax $ affjax $
 -- | Get a list of language summaries for a tag.             
 getTag :: forall eff. Tag -> AjaxAction eff [LangSummary]
 getTag tag = ajax <<< get $ "/api/tag/" <> tag
+
+like :: forall eff. Key -> AjaxAction eff Ok
+like key = ajax $ post ("/api/lang/" <> key <> "/like") unit
